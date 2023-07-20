@@ -1,5 +1,5 @@
 {
-    "name": "@remitano-anhdt2365/celeb-duel-sdk",
+    "name": "@remitano-anhdt/celeb-duel-sdk",
     "version": "0.0.1",
     "description": "Typescript SDK to interact with Celeb Duel program.",
     "main": "dist/index.js",
