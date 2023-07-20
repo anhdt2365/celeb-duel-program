@@ -1,0 +1,14 @@
+[features]
+seeds = false
+[programs.localnet]
+celeb_duel_program = "3p2vXr5dLy6dN8ehJZ5NEvDkmrPCz7PBj2YMQEsvpURW"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/renec/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
