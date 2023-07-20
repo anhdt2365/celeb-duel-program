@@ -2,12 +2,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { Address, translateAddress } from "@project-serum/anchor";
 import invariant from "tiny-invariant";
 import { DuelConfigData, DuelData, UserData } from "../";
-import {
-  ParsableEntity,
-  ParsableDuelConfig,
-  ParsableDuel,
-  ParsableUser,
-} from "./parsing";
+import { ParsableEntity, ParsableDuelConfig, ParsableDuel, ParsableUser } from "./parsing";
 
 /**
  * Supported accounts
@@ -160,10 +155,7 @@ export class AccountFetcher {
   }
 
   // YOUR CODE:
-  public async getOneDuelConfig(
-    address: Address,
-    refresh = false,
-  ): Promise<DuelConfigData | null> {
+  public async getOneDuelConfig(address: Address, refresh = false): Promise<DuelConfigData | null> {
     return this.get(translateAddress(address), ParsableDuelConfig, refresh);
   }
 

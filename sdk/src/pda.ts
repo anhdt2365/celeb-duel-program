@@ -20,7 +20,10 @@ export class PDA {
 
   duel_config = (admin: anchor.web3.PublicKey): PDAInfo => {
     const [pda, bump] = anchor.web3.PublicKey.findProgramAddressSync(
-      [anchor.utils.bytes.utf8.encode(DUEL_CONFIG_SEED), (admin as anchor.web3.PublicKey).toBuffer()],
+      [
+        anchor.utils.bytes.utf8.encode(DUEL_CONFIG_SEED),
+        (admin as anchor.web3.PublicKey).toBuffer(),
+      ],
       this.programId,
     );
     return {
@@ -31,10 +34,7 @@ export class PDA {
 
   duel = (id: anchor.BN): PDAInfo => {
     const [pda, bump] = anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        anchor.utils.bytes.utf8.encode(DUEL_SEED),
-        id.toArrayLike(Buffer, 'le', 8),
-      ],
+      [anchor.utils.bytes.utf8.encode(DUEL_SEED), id.toArrayLike(Buffer, "le", 8)],
       this.programId,
     );
     return {
@@ -55,7 +55,7 @@ export class PDA {
       key: pda,
       bump: bump,
     };
-  }
+  };
 
   duel_token_two = (duel: anchor.web3.PublicKey) => {
     const [pda, bump] = anchor.web3.PublicKey.findProgramAddressSync(
@@ -69,7 +69,7 @@ export class PDA {
       key: pda,
       bump: bump,
     };
-  }
+  };
 
   user = (duel: anchor.web3.PublicKey, user: anchor.web3.PublicKey): PDAInfo => {
     const [pda, bump] = anchor.web3.PublicKey.findProgramAddressSync(

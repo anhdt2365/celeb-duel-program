@@ -20,14 +20,14 @@ export async function announceWinner(
   program: Program<CelebDuelProgram>,
   params: AnnounceWinnerParams,
 ): Promise<Instruction> {
-  const { accounts, } = params;
+  const { accounts } = params;
 
   const ix = await program.methods
     .announceWinner()
     .accounts({
       ...accounts,
       systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID
+      tokenProgram: TOKEN_PROGRAM_ID,
     })
     .instruction();
 

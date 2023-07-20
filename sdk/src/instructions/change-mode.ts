@@ -8,7 +8,7 @@ export type ChangeModeParams = {
     duelConfigAccount: PublicKey;
   };
   inputs: {
-    testMode: boolean
+    testMode: boolean;
   };
 };
 
@@ -19,9 +19,7 @@ export async function changeMode(
   const { accounts, inputs } = params;
 
   const ix = await program.methods
-    .changeMode(
-      inputs.testMode,
-    )
+    .changeMode(inputs.testMode)
     .accounts({
       ...accounts,
       systemProgram: SystemProgram.programId,

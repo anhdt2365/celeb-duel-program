@@ -1,22 +1,22 @@
 {
-    "name": "@renec-chain/kyc-sdk",
+    "name": "@remitano-anhdt2365/celeb-duel-sdk",
     "version": "0.0.1",
-    "description": "Typescript SDK to interact with Kyc program.",
+    "description": "Typescript SDK to interact with Celeb Duel program.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/renec-chain/kyc-sdk"
+        "url": "git+https://github.com/renec-chain/celeb-duel-sdk"
     },
     "keywords": [
-        "kyc-sdk"
+        "celeb-duel-sdk"
     ],
     "author": "anhdt@remitano.com",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/renec-chain/kyc-sdk/issues"
+        "url": "https://github.com/renec-chain/celeb-duel-sdk/issues"
     },
-    "homepage": "https://github.com/renec-chain/kyc-sdk#readme",
+    "homepage": "https://github.com/renec-chain/celeb-duel-sdk#readme",
     "scripts": {
         "build": "tsc -p src",
         "prepublishOnly": "yarn build",

@@ -1,10 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program, BN } from "@project-serum/anchor";
-import {
-  createMint,
-  createAssociatedTokenAccount,
-  getAccount
-} from "spl-token";
+import { createMint, createAssociatedTokenAccount, getAccount } from "spl-token";
 import {
   PublicKey,
   LAMPORTS_PER_SOL,
@@ -33,10 +29,10 @@ const transferSol = async (connection: Connection, from: Signer, to: PublicKey, 
       fromPubkey: from.publicKey,
       toPubkey: to,
       lamports: LAMPORTS_PER_SOL * amount,
-    })
+    }),
   );
   await sendAndConfirmTransaction(connection, tx, [from]);
-}
+};
 
 describe("celeb-duel-program", () => {
   const provider = anchor.AnchorProvider.env();
@@ -71,32 +67,20 @@ describe("celeb-duel-program", () => {
 
   it("Is init resources", async () => {
     // Create mint
-    tokenOne = await createMint(
-      connection,
-      payer,
-      payer.publicKey,
-      payer.publicKey,
-      9
-    );
-    tokenTwo = await createMint(
-      connection,
-      payer,
-      payer.publicKey,
-      payer.publicKey,
-      9
-    );
+    tokenOne = await createMint(connection, payer, payer.publicKey, payer.publicKey, 9);
+    tokenTwo = await createMint(connection, payer, payer.publicKey, payer.publicKey, 9);
 
     payerTokenOneAccount = await createAssociatedTokenAccount(
       provider.connection,
       payer,
       tokenOne,
-      payerAccount
+      payerAccount,
     );
     payerTokenTwoAccount = await createAssociatedTokenAccount(
       provider.connection,
       payer,
       tokenTwo,
-      payerAccount
+      payerAccount,
     );
 
     // Transfer 2 SOL to Alice and Bob
@@ -108,26 +92,27 @@ describe("celeb-duel-program", () => {
     let bump;
     [duelConfigAccount, bump] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(DUEL_CONFIG_SEED), payerAccount.toBuffer()],
-      program.programId
+      program.programId,
     );
 
-    const instructions = [await program.methods.initialize(
-      true // test mode
-    ).accounts({
-      authority: payerAccount,
-      feePayer: payerAccount,
-      duelConfigAccount,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      rent: anchor.web3.SYSVAR_RENT_PUBKEY
-    }).instruction()];
+    const instructions = [
+      await program.methods
+        .initialize(
+          true, // test mode
+        )
+        .accounts({
+          authority: payerAccount,
+          feePayer: payerAccount,
+          duelConfigAccount,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .instruction(),
+    ];
     const transaction = new Transaction().add(...instructions);
-    transaction.recentBlockhash = (
-      await connection.getLatestBlockhash("processed")
-    ).blockhash;
+    transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction.feePayer = payerAccount;
-    const recoverTx = Transaction.from(
-      transaction.serialize({ requireAllSignatures: false })
-    );
+    const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
     // transaction sign
     recoverTx.sign(payer);
@@ -146,21 +131,22 @@ describe("celeb-duel-program", () => {
 
   it("cannot change test mode with data remains unchanged", async () => {
     try {
-      const instructions = [await program.methods.changeMode(
-        true // test mode
-      ).accounts({
-        authority: payerAccount,
-        duelConfigAccount,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .changeMode(
+            true, // test mode
+          )
+          .accounts({
+            authority: payerAccount,
+            duelConfigAccount,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = payerAccount;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.sign(payer);
@@ -168,27 +154,30 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1772");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1772",
+      );
     }
   });
 
   it("cannot change test mode without admin role", async () => {
     try {
-      const instructions = [await program.methods.changeMode(
-        true // test mode
-      ).accounts({
-        authority: alice.publicKey,
-        duelConfigAccount,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .changeMode(
+            true, // test mode
+          )
+          .accounts({
+            authority: alice.publicKey,
+            duelConfigAccount,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = alice.publicKey;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.sign(alice);
@@ -196,26 +185,29 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1770");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1770",
+      );
     }
   });
 
   it("successful change test mode", async () => {
-    const instructions1 = [await program.methods.changeMode(
-      false // test mode
-    ).accounts({
-      authority: payerAccount,
-      duelConfigAccount,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    }).instruction()];
+    const instructions1 = [
+      await program.methods
+        .changeMode(
+          false, // test mode
+        )
+        .accounts({
+          authority: payerAccount,
+          duelConfigAccount,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .instruction(),
+    ];
     const transaction1 = new Transaction().add(...instructions1);
-    transaction1.recentBlockhash = (
-      await connection.getLatestBlockhash("processed")
-    ).blockhash;
+    transaction1.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction1.feePayer = payerAccount;
-    const recoverTx1 = Transaction.from(
-      transaction1.serialize({ requireAllSignatures: false })
-    );
+    const recoverTx1 = Transaction.from(transaction1.serialize({ requireAllSignatures: false }));
 
     // transaction sign
     recoverTx1.sign(payer);
@@ -228,21 +220,22 @@ describe("celeb-duel-program", () => {
     let duelConfigAccountInfo = await program.account.duelConfig.fetch(duelConfigAccount);
     expect(duelConfigAccountInfo.testMode).to.be.equal(false);
 
-    const instructions2 = [await program.methods.changeMode(
-      true // test mode
-    ).accounts({
-      authority: payerAccount,
-      duelConfigAccount,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    }).instruction()];
+    const instructions2 = [
+      await program.methods
+        .changeMode(
+          true, // test mode
+        )
+        .accounts({
+          authority: payerAccount,
+          duelConfigAccount,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .instruction(),
+    ];
     const transaction2 = new Transaction().add(...instructions2);
-    transaction2.recentBlockhash = (
-      await connection.getLatestBlockhash("processed")
-    ).blockhash;
+    transaction2.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction2.feePayer = payerAccount;
-    const recoverTx2 = Transaction.from(
-      transaction2.serialize({ requireAllSignatures: false })
-    );
+    const recoverTx2 = Transaction.from(transaction2.serialize({ requireAllSignatures: false }));
 
     // transaction sign
     recoverTx2.sign(payer);
@@ -260,46 +253,43 @@ describe("celeb-duel-program", () => {
     let duelConfigAccountInfo = await program.account.duelConfig.fetch(duelConfigAccount);
     duelId = new BN(duelConfigAccountInfo.latestDuelId).add(new BN(1));
     [duelAccount] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from(DUEL_SEED), duelId.toArrayLike(Buffer, 'le', 8)],
-      program.programId
+      [Buffer.from(DUEL_SEED), duelId.toArrayLike(Buffer, "le", 8)],
+      program.programId,
     );
-    [duelTokenOneAccount,] = anchor.web3.PublicKey.findProgramAddressSync(
+    [duelTokenOneAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(DUEL_TOKEN_ONE_SEED), duelAccount.toBuffer()],
-      program.programId
+      program.programId,
     );
-    [duelTokenTwoAccount,] = anchor.web3.PublicKey.findProgramAddressSync(
+    [duelTokenTwoAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(DUEL_TOKEN_TWO_SEED), duelAccount.toBuffer()],
-      program.programId
+      program.programId,
     );
 
     startTime = (new Date().getTime() / 1000).toFixed().toString();
-    endTime = ((new Date().getTime() / 1000) - 1000).toFixed().toString();
+    endTime = (new Date().getTime() / 1000 - 1000).toFixed().toString();
     try {
-      const instructions = [await program.methods.createDuel(
-        duelId,
-        new BN(startTime),
-        new BN(endTime),
-      ).accounts({
-        authority: payerAccount,
-        feePayer: payerAccount,
-        duelConfigAccount,
-        duelAccount,
-        duelTokenOneAccount,
-        duelTokenTwoAccount,
-        tokenOne,
-        tokenTwo,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .createDuel(duelId, new BN(startTime), new BN(endTime))
+          .accounts({
+            authority: payerAccount,
+            feePayer: payerAccount,
+            duelConfigAccount,
+            duelAccount,
+            duelTokenOneAccount,
+            duelTokenTwoAccount,
+            tokenOne,
+            tokenTwo,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = payerAccount;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.sign(payer);
@@ -307,39 +297,38 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x177a");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x177a",
+      );
     }
   });
 
   it("cannot create duel without admin role", async () => {
     startTime = (new Date().getTime() / 1000).toFixed().toString();
-    endTime = ((new Date().getTime() / 1000) + 1000).toFixed().toString();
+    endTime = (new Date().getTime() / 1000 + 1000).toFixed().toString();
     try {
-      const instructions = [await program.methods.createDuel(
-        duelId,
-        new BN(startTime),
-        new BN(endTime),
-      ).accounts({
-        authority: alice.publicKey,
-        feePayer: alice.publicKey,
-        duelConfigAccount,
-        duelAccount,
-        duelTokenOneAccount,
-        duelTokenTwoAccount,
-        tokenOne,
-        tokenTwo,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .createDuel(duelId, new BN(startTime), new BN(endTime))
+          .accounts({
+            authority: alice.publicKey,
+            feePayer: alice.publicKey,
+            duelConfigAccount,
+            duelAccount,
+            duelTokenOneAccount,
+            duelTokenTwoAccount,
+            tokenOne,
+            tokenTwo,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = alice.publicKey;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.sign(alice);
@@ -347,37 +336,36 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1770");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1770",
+      );
     }
   });
 
   it("cannot create duel with same tokens", async () => {
     try {
-      const instructions = [await program.methods.createDuel(
-        duelId,
-        new BN(startTime),
-        new BN(endTime),
-      ).accounts({
-        authority: payerAccount,
-        feePayer: payerAccount,
-        duelConfigAccount,
-        duelAccount,
-        duelTokenOneAccount,
-        duelTokenTwoAccount,
-        tokenOne,
-        tokenTwo: tokenOne,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .createDuel(duelId, new BN(startTime), new BN(endTime))
+          .accounts({
+            authority: payerAccount,
+            feePayer: payerAccount,
+            duelConfigAccount,
+            duelAccount,
+            duelTokenOneAccount,
+            duelTokenTwoAccount,
+            tokenOne,
+            tokenTwo: tokenOne,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = payerAccount;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.sign(payer);
@@ -385,38 +373,37 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1773");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1773",
+      );
     }
   });
 
   it("successful create duel", async () => {
-    startTime = ((new Date().getTime() / 1000) - 10).toFixed().toString();
-    endTime = ((new Date().getTime() / 1000) + 1000).toFixed().toString();
-    const instructions = [await program.methods.createDuel(
-      duelId,
-      new BN(startTime),
-      new BN(endTime),
-    ).accounts({
-      authority: payerAccount,
-      feePayer: payerAccount,
-      duelConfigAccount,
-      duelAccount,
-      duelTokenOneAccount,
-      duelTokenTwoAccount,
-      tokenOne,
-      tokenTwo,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: SYSVAR_RENT_PUBKEY,
-    }).instruction()];
+    startTime = (new Date().getTime() / 1000 - 10).toFixed().toString();
+    endTime = (new Date().getTime() / 1000 + 1000).toFixed().toString();
+    const instructions = [
+      await program.methods
+        .createDuel(duelId, new BN(startTime), new BN(endTime))
+        .accounts({
+          authority: payerAccount,
+          feePayer: payerAccount,
+          duelConfigAccount,
+          duelAccount,
+          duelTokenOneAccount,
+          duelTokenTwoAccount,
+          tokenOne,
+          tokenTwo,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+        })
+        .instruction(),
+    ];
     const transaction = new Transaction().add(...instructions);
-    transaction.recentBlockhash = (
-      await connection.getLatestBlockhash("processed")
-    ).blockhash;
+    transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction.feePayer = payerAccount;
-    const recoverTx = Transaction.from(
-      transaction.serialize({ requireAllSignatures: false })
-    );
+    const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
     // transaction sign
     recoverTx.sign(payer);
@@ -443,31 +430,32 @@ describe("celeb-duel-program", () => {
   it("cannot vote wrong mint", async () => {
     [userAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(USER_SEED), duelAccount.toBuffer(), alice.publicKey.toBuffer()],
-      program.programId
+      program.programId,
     );
 
     try {
-      const instructions = [await program.methods.voteOne().accounts({
-        authority: alice.publicKey,
-        feePayer: payerAccount,
-        mintAuthority: payerAccount,
-        duelConfigAccount,
-        duelAccount,
-        userAccount,
-        duelTokenOneAccount,
-        tokenOne: tokenTwo,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .voteOne()
+          .accounts({
+            authority: alice.publicKey,
+            feePayer: payerAccount,
+            mintAuthority: payerAccount,
+            duelConfigAccount,
+            duelAccount,
+            userAccount,
+            duelTokenOneAccount,
+            tokenOne: tokenTwo,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = alice.publicKey;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.partialSign(alice);
@@ -476,31 +464,34 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1776");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1776",
+      );
     }
 
     try {
-      const instructions = [await program.methods.voteTwo().accounts({
-        authority: alice.publicKey,
-        feePayer: payerAccount,
-        mintAuthority: payerAccount,
-        duelConfigAccount,
-        duelAccount,
-        userAccount,
-        duelTokenTwoAccount,
-        tokenTwo: tokenOne,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .voteTwo()
+          .accounts({
+            authority: alice.publicKey,
+            feePayer: payerAccount,
+            mintAuthority: payerAccount,
+            duelConfigAccount,
+            duelAccount,
+            userAccount,
+            duelTokenTwoAccount,
+            tokenTwo: tokenOne,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = alice.publicKey;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.partialSign(alice);
@@ -509,7 +500,9 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1776");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1776",
+      );
     }
   });
 
@@ -517,27 +510,28 @@ describe("celeb-duel-program", () => {
     let duelTokenOneAccountInfo = await getAccount(connection, duelTokenOneAccount);
     expect(duelTokenOneAccountInfo.amount.toString()).to.be.equal("0");
 
-    const instructions = [await program.methods.voteOne().accounts({
-      authority: alice.publicKey,
-      feePayer: alice.publicKey,
-      mintAuthority: payerAccount,
-      duelConfigAccount,
-      duelAccount,
-      userAccount,
-      duelTokenOneAccount,
-      tokenOne,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: SYSVAR_RENT_PUBKEY,
-    }).instruction()];
+    const instructions = [
+      await program.methods
+        .voteOne()
+        .accounts({
+          authority: alice.publicKey,
+          feePayer: alice.publicKey,
+          mintAuthority: payerAccount,
+          duelConfigAccount,
+          duelAccount,
+          userAccount,
+          duelTokenOneAccount,
+          tokenOne,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+        })
+        .instruction(),
+    ];
     const transaction = new Transaction().add(...instructions);
-    transaction.recentBlockhash = (
-      await connection.getLatestBlockhash("processed")
-    ).blockhash;
+    transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction.feePayer = alice.publicKey;
-    const recoverTx = Transaction.from(
-      transaction.serialize({ requireAllSignatures: false })
-    );
+    const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
     // transaction sign
     recoverTx.partialSign(alice);
@@ -580,30 +574,31 @@ describe("celeb-duel-program", () => {
 
     [userAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(USER_SEED), duelAccount.toBuffer(), bob.publicKey.toBuffer()],
-      program.programId
+      program.programId,
     );
 
-    const instructions = [await program.methods.voteTwo().accounts({
-      authority: bob.publicKey,
-      feePayer: bob.publicKey,
-      mintAuthority: payerAccount,
-      duelConfigAccount,
-      duelAccount,
-      userAccount,
-      duelTokenTwoAccount,
-      tokenTwo,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: SYSVAR_RENT_PUBKEY,
-    }).instruction()];
+    const instructions = [
+      await program.methods
+        .voteTwo()
+        .accounts({
+          authority: bob.publicKey,
+          feePayer: bob.publicKey,
+          mintAuthority: payerAccount,
+          duelConfigAccount,
+          duelAccount,
+          userAccount,
+          duelTokenTwoAccount,
+          tokenTwo,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+        })
+        .instruction(),
+    ];
     const transaction = new Transaction().add(...instructions);
-    transaction.recentBlockhash = (
-      await connection.getLatestBlockhash("processed")
-    ).blockhash;
+    transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction.feePayer = bob.publicKey;
-    const recoverTx = Transaction.from(
-      transaction.serialize({ requireAllSignatures: false })
-    );
+    const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
     // transaction sign
     recoverTx.partialSign(bob);
@@ -643,31 +638,32 @@ describe("celeb-duel-program", () => {
   it("cannot vote immediately", async () => {
     [userAccount] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(USER_SEED), duelAccount.toBuffer(), alice.publicKey.toBuffer()],
-      program.programId
+      program.programId,
     );
 
     try {
-      const instructions = [await program.methods.voteOne().accounts({
-        authority: alice.publicKey,
-        feePayer: payerAccount,
-        mintAuthority: payerAccount,
-        duelConfigAccount,
-        duelAccount,
-        userAccount,
-        duelTokenOneAccount,
-        tokenOne,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .voteOne()
+          .accounts({
+            authority: alice.publicKey,
+            feePayer: payerAccount,
+            mintAuthority: payerAccount,
+            duelConfigAccount,
+            duelAccount,
+            userAccount,
+            duelTokenOneAccount,
+            tokenOne,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = alice.publicKey;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.partialSign(alice);
@@ -676,30 +672,33 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1779");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1779",
+      );
     }
     try {
-      const instructions = [await program.methods.voteTwo().accounts({
-        authority: alice.publicKey,
-        feePayer: payerAccount,
-        mintAuthority: payerAccount,
-        duelConfigAccount,
-        duelAccount,
-        userAccount,
-        duelTokenTwoAccount,
-        tokenTwo,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .voteTwo()
+          .accounts({
+            authority: alice.publicKey,
+            feePayer: payerAccount,
+            mintAuthority: payerAccount,
+            duelConfigAccount,
+            duelAccount,
+            userAccount,
+            duelTokenTwoAccount,
+            tokenTwo,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = alice.publicKey;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.partialSign(alice);
@@ -708,30 +707,33 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1779");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x1779",
+      );
     }
   });
 
   it("cannot announce winner when duel not end", async () => {
     try {
-      const instructions = [await program.methods.announceWinner().accounts({
-        authority: payerAccount,
-        authorityTokenAccount: payerTokenOneAccount,
-        duelConfigAccount,
-        duelAccount,
-        duelTokenOneAccount,
-        duelTokenTwoAccount,
-        systemProgram: anchor.web3.SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      }).instruction()];
+      const instructions = [
+        await program.methods
+          .announceWinner()
+          .accounts({
+            authority: payerAccount,
+            authorityTokenAccount: payerTokenOneAccount,
+            duelConfigAccount,
+            duelAccount,
+            duelTokenOneAccount,
+            duelTokenTwoAccount,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .instruction(),
+      ];
       const transaction = new Transaction().add(...instructions);
-      transaction.recentBlockhash = (
-        await connection.getLatestBlockhash("processed")
-      ).blockhash;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
       transaction.feePayer = payerAccount;
-      const recoverTx = Transaction.from(
-        transaction.serialize({ requireAllSignatures: false })
-      );
+      const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
       recoverTx.sign(payer);
@@ -739,7 +741,9 @@ describe("celeb-duel-program", () => {
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
       expect(err).to.be.instanceOf(SendTransactionError);
-      expect((err as SendTransactionError).message).to.equal("failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x177d");
+      expect((err as SendTransactionError).message).to.equal(
+        "failed to send transaction: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x177d",
+      );
     }
   });
 });

@@ -16,7 +16,10 @@ export class DuelClient {
     this.duelConfig = duelConfig;
   }
 
-  public static async getClient(ctx: Context, duelConfig: PublicKey = SystemProgram.programId): Promise<DuelClient> {
+  public static async getClient(
+    ctx: Context,
+    duelConfig: PublicKey = SystemProgram.programId,
+  ): Promise<DuelClient> {
     const pda = new PDA(ctx.program.programId);
     return new DuelClient(ctx, pda, duelConfig);
   }
@@ -34,14 +37,12 @@ export class DuelClient {
         duelConfigAccount: duelConfig.key,
       },
       inputs: {
-        testMode
+        testMode,
       },
-    })
+    });
   }
 
-  public async initialize(
-    testMode: boolean,
-  ): Promise<TransactionBuilder> {
+  public async initialize(testMode: boolean): Promise<TransactionBuilder> {
     const duelConfig = this.pda.duel_config(this.ctx.wallet.publicKey);
 
     const tx = (
@@ -52,7 +53,7 @@ export class DuelClient {
           duelConfigAccount: duelConfig.key,
         },
         inputs: {
-          testMode
+          testMode,
         },
       })
     ).toTx();
@@ -60,9 +61,7 @@ export class DuelClient {
     return tx;
   }
 
-  public async changeMode(
-    testMode: boolean
-  ): Promise<TransactionBuilder> {
+  public async changeMode(testMode: boolean): Promise<TransactionBuilder> {
     if (!this.duelConfig) {
       throw Error("Please add Duel Config into DuelClient");
     }
@@ -81,7 +80,7 @@ export class DuelClient {
           duelConfigAccount: this.duelConfig,
         },
         inputs: {
-          testMode
+          testMode,
         },
       })
     ).toTx();
@@ -121,14 +120,14 @@ export class DuelClient {
         duelTokenOneAccount: duelTokenOne.key,
         duelTokenTwoAccount: duelTokenTwo.key,
         tokenOne,
-        tokenTwo
+        tokenTwo,
       },
       inputs: {
         duelId,
         startDate: new BN(startTime),
         endDate: new BN(endTime),
       },
-    })
+    });
   }
 
   public async createDuel(
@@ -166,7 +165,7 @@ export class DuelClient {
           duelTokenOneAccount: duelTokenOne.key,
           duelTokenTwoAccount: duelTokenTwo.key,
           tokenOne,
-          tokenTwo
+          tokenTwo,
         },
         inputs: {
           duelId,
@@ -182,7 +181,7 @@ export class DuelClient {
   public async buildVoteOneIx(
     duelId: string,
     voter: PublicKey,
-    feePayer: PublicKey = this.ctx.wallet.publicKey
+    feePayer: PublicKey = this.ctx.wallet.publicKey,
   ): Promise<TransactionInstruction> {
     if (!this.duelConfig) {
       throw Error("Please add Duel Config into DuelClient");
@@ -238,7 +237,7 @@ export class DuelClient {
   public async buildVoteTwoIx(
     duelId: string,
     voter: PublicKey,
-    feePayer: PublicKey = this.ctx.wallet.publicKey
+    feePayer: PublicKey = this.ctx.wallet.publicKey,
   ): Promise<TransactionInstruction> {
     const duel = this.pda.duel(new BN(duelId));
     const duelData = await this.getOneDuel(duel.key);
@@ -285,7 +284,10 @@ export class DuelClient {
     return tx;
   }
 
-  public async announceWinner(duelId: string, tokenAccount: PublicKey): Promise<TransactionBuilder | null> {
+  public async announceWinner(
+    duelId: string,
+    tokenAccount: PublicKey,
+  ): Promise<TransactionBuilder | null> {
     const duel = this.pda.duel(new BN(duelId));
     const duelData = await this.getOneDuel(duel.key);
     const duelConfigData = await this.getDuelConfig(duelData.duelConfigAccount);
@@ -359,7 +361,10 @@ export class DuelClient {
     return duelData;
   }
 
-  public async getUserByUserPublicKey(duel: PublicKey, userPublicKey: PublicKey): Promise<UserData | null> {
+  public async getUserByUserPublicKey(
+    duel: PublicKey,
+    userPublicKey: PublicKey,
+  ): Promise<UserData | null> {
     const pda = new PDA(this.ctx.program.programId);
     const user = pda.user(duel, userPublicKey);
 

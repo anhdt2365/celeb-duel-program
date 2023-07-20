@@ -53,5 +53,5 @@ export type UserData = {
 export enum DuelResult {
   OneWin = 1,
   TwoWin = 2,
-  Tie = 3
+  Tie = 3,
 }

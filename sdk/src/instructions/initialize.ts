@@ -1,4 +1,9 @@
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
+import {
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import { Program } from "@project-serum/anchor";
 import { CelebDuelProgram } from "../artifacts/celeb-duel-program";
 
@@ -9,7 +14,7 @@ export type InitializeParams = {
     duelConfigAccount: PublicKey;
   };
   inputs: {
-    testMode: boolean
+    testMode: boolean;
   };
 };
 
@@ -20,9 +25,7 @@ export async function initialize(
   const { accounts, inputs } = params;
 
   const ix = await program.methods
-    .initialize(
-      inputs.testMode,
-    )
+    .initialize(inputs.testMode)
     .accounts({
       ...accounts,
       systemProgram: SystemProgram.programId,

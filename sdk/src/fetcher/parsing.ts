@@ -1,11 +1,5 @@
 import { BorshAccountsCoder } from "@project-serum/anchor";
-import {
-  accountsCoder,
-  DuelConfigData,
-  DuelData,
-  UserData,
-  AccountName,
-} from "../types";
+import { accountsCoder, DuelConfigData, DuelData, UserData, AccountName } from "../types";
 
 /**
  * Static abstract class definition to parse entities.

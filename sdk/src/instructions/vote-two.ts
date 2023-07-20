@@ -1,4 +1,9 @@
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
+import {
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import { Program } from "@project-serum/anchor";
 import { CelebDuelProgram } from "../artifacts/celeb-duel-program";
 import { TOKEN_PROGRAM_ID } from "spl-token";
@@ -21,7 +26,7 @@ export async function voteTwo(
   program: Program<CelebDuelProgram>,
   params: VoteTwoParams,
 ): Promise<TransactionInstruction> {
-  const { accounts, } = params;
+  const { accounts } = params;
 
   const ix = await program.methods
     .voteTwo()
