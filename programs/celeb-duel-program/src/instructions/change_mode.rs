@@ -19,7 +19,10 @@ pub struct ChangeMode<'info> {
 pub fn exec(ctx: Context<ChangeMode>, test_mode: bool) -> Result<()> {
     let duel_config = &mut ctx.accounts.duel_config_account;
 
-    invariant!(duel_config.test_mode != test_mode, CelebDuelErrorCode::ModeNotChange);
+    invariant!(
+        duel_config.test_mode != test_mode,
+        CelebDuelErrorCode::ModeNotChange
+    );
 
     duel_config.change_mode(test_mode)
 }

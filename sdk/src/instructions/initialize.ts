@@ -9,8 +9,8 @@ import { CelebDuelProgram } from "../artifacts/celeb-duel-program";
 
 export type InitializeParams = {
   accounts: {
-    authority: PublicKey;
     feePayer: PublicKey;
+    authority: PublicKey;
     duelConfigAccount: PublicKey;
   };
   inputs: {

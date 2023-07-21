@@ -10,8 +10,8 @@ import { TOKEN_PROGRAM_ID } from "spl-token";
 
 export type CreateDuelParams = {
   accounts: {
-    authority: PublicKey;
     feePayer: PublicKey;
+    authority: PublicKey;
     duelConfigAccount: PublicKey;
     duelAccount: PublicKey;
     duelTokenOneAccount: PublicKey;

@@ -10,9 +10,8 @@ import { TOKEN_PROGRAM_ID } from "spl-token";
 
 export type VoteTwoParams = {
   accounts: {
-    authority: PublicKey;
-    mintAuthority: PublicKey;
     feePayer: PublicKey;
+    authority: PublicKey;
     duelConfigAccount: PublicKey;
     duelAccount: PublicKey;
     userAccount: PublicKey;

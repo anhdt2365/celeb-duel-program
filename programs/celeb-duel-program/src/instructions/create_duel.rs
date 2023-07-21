@@ -5,13 +5,13 @@ use crate::*;
     id: u64
 )]
 pub struct CreateDuel<'info> {
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
     #[account(
         mut,
         address = duel_config_account.admin @ CelebDuelErrorCode::OnlyAdmin,
     )]
     pub authority: Signer<'info>,
-    #[account(mut)]
-    pub fee_payer: Signer<'info>,
     #[account(
         mut,
         seeds = [DUEL_CONFIG_SEED, duel_config_account.admin.as_ref()],

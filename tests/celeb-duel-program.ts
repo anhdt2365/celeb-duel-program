@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
-import { AnchorError, Program, BN } from "@project-serum/anchor";
-import { createMint, createAssociatedTokenAccount, getAccount } from "spl-token";
+import { Program, BN } from "@project-serum/anchor";
+import { createMint, createAssociatedTokenAccount, getAccount, setAuthority, AuthorityType, getMint } from "spl-token";
 import {
   PublicKey,
   LAMPORTS_PER_SOL,
@@ -101,8 +101,8 @@ describe("celeb-duel-program", () => {
           true, // test mode
         )
         .accounts({
-          authority: payerAccount,
           feePayer: payerAccount,
+          authority: payerAccount,
           duelConfigAccount,
           systemProgram: anchor.web3.SystemProgram.programId,
           rent: anchor.web3.SYSVAR_RENT_PUBKEY,
@@ -272,8 +272,8 @@ describe("celeb-duel-program", () => {
         await program.methods
           .createDuel(duelId, new BN(startTime), new BN(endTime))
           .accounts({
-            authority: payerAccount,
             feePayer: payerAccount,
+            authority: payerAccount,
             duelConfigAccount,
             duelAccount,
             duelTokenOneAccount,
@@ -311,8 +311,8 @@ describe("celeb-duel-program", () => {
         await program.methods
           .createDuel(duelId, new BN(startTime), new BN(endTime))
           .accounts({
-            authority: alice.publicKey,
             feePayer: alice.publicKey,
+            authority: alice.publicKey,
             duelConfigAccount,
             duelAccount,
             duelTokenOneAccount,
@@ -348,8 +348,8 @@ describe("celeb-duel-program", () => {
         await program.methods
           .createDuel(duelId, new BN(startTime), new BN(endTime))
           .accounts({
-            authority: payerAccount,
             feePayer: payerAccount,
+            authority: payerAccount,
             duelConfigAccount,
             duelAccount,
             duelTokenOneAccount,
@@ -386,8 +386,8 @@ describe("celeb-duel-program", () => {
       await program.methods
         .createDuel(duelId, new BN(startTime), new BN(endTime))
         .accounts({
-          authority: payerAccount,
           feePayer: payerAccount,
+          authority: payerAccount,
           duelConfigAccount,
           duelAccount,
           duelTokenOneAccount,
@@ -425,6 +425,28 @@ describe("celeb-duel-program", () => {
     expect(duelInfo.startDate.toString()).to.be.equal(startTime);
     expect(duelInfo.endDate.toString()).to.be.equal(endTime);
     expect(duelInfo.winner).to.be.equal(0);
+
+    await setAuthority(
+      connection,
+      payer,
+      tokenOne,
+      payerAccount,
+      AuthorityType.MintTokens,
+      duelAccount
+    );
+    await setAuthority(
+      connection,
+      payer,
+      tokenTwo,
+      payerAccount,
+      AuthorityType.MintTokens,
+      duelAccount
+    );
+
+    const tokenOneInfo = await getMint(connection, tokenOne);
+    expect(tokenOneInfo.mintAuthority.toBase58() === duelAccount.toBase58()).to.be.equal(true);
+    const tokenTwoInfo = await getMint(connection, tokenTwo);
+    expect(tokenTwoInfo.mintAuthority.toBase58() === duelAccount.toBase58()).to.be.equal(true);
   });
 
   it("cannot vote wrong mint", async () => {
@@ -438,9 +460,8 @@ describe("celeb-duel-program", () => {
         await program.methods
           .voteOne()
           .accounts({
+            feePayer: alice.publicKey,
             authority: alice.publicKey,
-            feePayer: payerAccount,
-            mintAuthority: payerAccount,
             duelConfigAccount,
             duelAccount,
             userAccount,
@@ -458,8 +479,7 @@ describe("celeb-duel-program", () => {
       const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
-      recoverTx.partialSign(alice);
-      recoverTx.partialSign(payer);
+      recoverTx.sign(alice);
 
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
@@ -474,9 +494,8 @@ describe("celeb-duel-program", () => {
         await program.methods
           .voteTwo()
           .accounts({
+            feePayer: alice.publicKey,
             authority: alice.publicKey,
-            feePayer: payerAccount,
-            mintAuthority: payerAccount,
             duelConfigAccount,
             duelAccount,
             userAccount,
@@ -494,8 +513,7 @@ describe("celeb-duel-program", () => {
       const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
-      recoverTx.partialSign(alice);
-      recoverTx.partialSign(payer);
+      recoverTx.sign(alice);
 
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
@@ -514,9 +532,8 @@ describe("celeb-duel-program", () => {
       await program.methods
         .voteOne()
         .accounts({
-          authority: alice.publicKey,
           feePayer: alice.publicKey,
-          mintAuthority: payerAccount,
+          authority: alice.publicKey,
           duelConfigAccount,
           duelAccount,
           userAccount,
@@ -534,8 +551,7 @@ describe("celeb-duel-program", () => {
     const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
     // transaction sign
-    recoverTx.partialSign(alice);
-    recoverTx.partialSign(payer);
+    recoverTx.sign(alice);
 
     await connection.sendRawTransaction(recoverTx.serialize());
 
@@ -581,9 +597,8 @@ describe("celeb-duel-program", () => {
       await program.methods
         .voteTwo()
         .accounts({
-          authority: bob.publicKey,
           feePayer: bob.publicKey,
-          mintAuthority: payerAccount,
+          authority: bob.publicKey,
           duelConfigAccount,
           duelAccount,
           userAccount,
@@ -601,8 +616,7 @@ describe("celeb-duel-program", () => {
     const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
     // transaction sign
-    recoverTx.partialSign(bob);
-    recoverTx.partialSign(payer);
+    recoverTx.sign(bob);
 
     await connection.sendRawTransaction(recoverTx.serialize());
 
@@ -646,9 +660,8 @@ describe("celeb-duel-program", () => {
         await program.methods
           .voteOne()
           .accounts({
+            feePayer: alice.publicKey,
             authority: alice.publicKey,
-            feePayer: payerAccount,
-            mintAuthority: payerAccount,
             duelConfigAccount,
             duelAccount,
             userAccount,
@@ -666,8 +679,7 @@ describe("celeb-duel-program", () => {
       const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
-      recoverTx.partialSign(alice);
-      recoverTx.partialSign(payer);
+      recoverTx.sign(alice);
 
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {
@@ -681,9 +693,8 @@ describe("celeb-duel-program", () => {
         await program.methods
           .voteTwo()
           .accounts({
+            feePayer: alice.publicKey,
             authority: alice.publicKey,
-            feePayer: payerAccount,
-            mintAuthority: payerAccount,
             duelConfigAccount,
             duelAccount,
             userAccount,
@@ -701,8 +712,7 @@ describe("celeb-duel-program", () => {
       const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
 
       // transaction sign
-      recoverTx.partialSign(alice);
-      recoverTx.partialSign(payer);
+      recoverTx.sign(alice);
 
       await connection.sendRawTransaction(recoverTx.serialize());
     } catch (err) {

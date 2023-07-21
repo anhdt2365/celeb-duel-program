@@ -6,12 +6,12 @@
       "name": "initialize",
       "accounts": [
         {
-          "name": "authority",
+          "name": "feePayer",
           "isMut": true,
           "isSigner": true
         },
         {
-          "name": "feePayer",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -68,12 +68,12 @@
       "name": "createDuel",
       "accounts": [
         {
-          "name": "authority",
+          "name": "feePayer",
           "isMut": true,
           "isSigner": true
         },
         {
-          "name": "feePayer",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -142,17 +142,12 @@
       "name": "voteOne",
       "accounts": [
         {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mintAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
           "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -203,17 +198,12 @@
       "name": "voteTwo",
       "accounts": [
         {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mintAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
           "name": "feePayer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },

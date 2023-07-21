@@ -32,8 +32,8 @@ export class DuelClient {
 
     return await this.ctx.methods.initializeIx({
       accounts: {
-        authority: this.ctx.wallet.publicKey,
         feePayer,
+        authority: this.ctx.wallet.publicKey,
         duelConfigAccount: duelConfig.key,
       },
       inputs: {
@@ -48,8 +48,8 @@ export class DuelClient {
     const tx = (
       await this.ctx.methods.initialize({
         accounts: {
-          authority: this.ctx.wallet.publicKey,
           feePayer: this.ctx.wallet.publicKey,
+          authority: this.ctx.wallet.publicKey,
           duelConfigAccount: duelConfig.key,
         },
         inputs: {
@@ -113,8 +113,8 @@ export class DuelClient {
 
     return await this.ctx.methods.createDuelIx({
       accounts: {
-        authority: this.ctx.wallet.publicKey,
         feePayer,
+        authority: this.ctx.wallet.publicKey,
         duelConfigAccount: this.duelConfig,
         duelAccount: duel.key,
         duelTokenOneAccount: duelTokenOne.key,
@@ -158,8 +158,8 @@ export class DuelClient {
     const tx = (
       await this.ctx.methods.createDuel({
         accounts: {
-          authority: this.ctx.wallet.publicKey,
           feePayer: this.ctx.wallet.publicKey,
+          authority: this.ctx.wallet.publicKey,
           duelConfigAccount: this.duelConfig,
           duelAccount: duel.key,
           duelTokenOneAccount: duelTokenOne.key,
@@ -188,14 +188,12 @@ export class DuelClient {
     }
     const duel = this.pda.duel(new BN(duelId));
     const duelData = await this.getOneDuel(duel.key);
-    const duelConfigData = await this.getDuelConfig(duelData.duelConfigAccount);
     const user = this.pda.user(duelData.account, voter);
 
     return await this.ctx.methods.voteOneIx({
       accounts: {
-        authority: voter,
-        mintAuthority: duelConfigData.admin,
         feePayer,
+        authority: voter,
         duelConfigAccount: this.duelConfig,
         duelAccount: duel.key,
         userAccount: user.key,
@@ -212,15 +210,13 @@ export class DuelClient {
     }
     const duel = this.pda.duel(new BN(duelId));
     const duelData = await this.getOneDuel(duel.key);
-    const duelConfigData = await this.getDuelConfig(duelData.duelConfigAccount);
     const user = this.pda.user(duelData.account, this.ctx.wallet.publicKey);
 
     const tx = (
       await this.ctx.methods.voteOne({
         accounts: {
-          authority: this.ctx.wallet.publicKey,
-          mintAuthority: duelConfigData.admin,
           feePayer: this.ctx.wallet.publicKey,
+          authority: this.ctx.wallet.publicKey,
           duelConfigAccount: this.duelConfig,
           duelAccount: duel.key,
           userAccount: user.key,
@@ -241,14 +237,12 @@ export class DuelClient {
   ): Promise<TransactionInstruction> {
     const duel = this.pda.duel(new BN(duelId));
     const duelData = await this.getOneDuel(duel.key);
-    const duelConfigData = await this.getDuelConfig(duelData.duelConfigAccount);
     const user = this.pda.user(duelData.account, voter);
 
     return await this.ctx.methods.voteTwoIx({
       accounts: {
-        authority: voter,
-        mintAuthority: duelConfigData.admin,
         feePayer,
+        authority: voter,
         duelConfigAccount: this.duelConfig,
         duelAccount: duel.key,
         userAccount: user.key,
@@ -262,15 +256,13 @@ export class DuelClient {
   public async voteTwo(duelId: string): Promise<TransactionBuilder> {
     const duel = this.pda.duel(new BN(duelId));
     const duelData = await this.getOneDuel(duel.key);
-    const duelConfigData = await this.getDuelConfig(duelData.duelConfigAccount);
     const user = this.pda.user(duelData.account, this.ctx.wallet.publicKey);
 
     const tx = (
       await this.ctx.methods.voteTwo({
         accounts: {
-          authority: this.ctx.wallet.publicKey,
-          mintAuthority: duelConfigData.admin,
           feePayer: this.ctx.wallet.publicKey,
+          authority: this.ctx.wallet.publicKey,
           duelConfigAccount: this.duelConfig,
           duelAccount: duel.key,
           userAccount: user.key,

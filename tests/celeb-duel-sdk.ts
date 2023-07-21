@@ -13,7 +13,7 @@ import {
   SYSVAR_RENT_PUBKEY,
   SendTransactionError,
 } from "@solana/web3.js";
-import { createMint, createAssociatedTokenAccount, getAccount, TOKEN_PROGRAM_ID } from "spl-token";
+import { createMint, createAssociatedTokenAccount, getAccount, AuthorityType, setAuthority, getMint } from "spl-token";
 import { expect } from "chai";
 import { Context, DuelClient } from "../sdk/src";
 import * as bs58 from "bs58";
@@ -216,13 +216,35 @@ describe("celeb-duel-program-sdk", () => {
     expect(duelInfo.startDate.toString()).to.be.equal(startTime);
     expect(duelInfo.endDate.toString()).to.be.equal(endTime);
     expect(duelInfo.winner).to.be.equal(0);
+
+
+    await setAuthority(
+      connection,
+      payerKeypair,
+      tokenOne,
+      payerAccount,
+      AuthorityType.MintTokens,
+      duelAccount
+    );
+    await setAuthority(
+      connection,
+      payerKeypair,
+      tokenTwo,
+      payerAccount,
+      AuthorityType.MintTokens,
+      duelAccount
+    );
+
+    const tokenOneInfo = await getMint(connection, tokenOne);
+    expect(tokenOneInfo.mintAuthority.toBase58() === duelAccount.toBase58()).to.be.equal(true);
+    const tokenTwoInfo = await getMint(connection, tokenTwo);
+    expect(tokenTwoInfo.mintAuthority.toBase58() === duelAccount.toBase58()).to.be.equal(true);
   });
 
   it("successful vote number one", async () => {
     let duelTokenOneAccountInfo = await getAccount(connection, duelTokenOneAccount);
     expect(duelTokenOneAccountInfo.amount.toString()).to.be.equal("0");
 
-    // Build and sign transaction in BE, then encode to send to FE
     client = await DuelClient.getClient(adminContext, duelConfigAccount);
 
     const instructions = [await client.buildVoteOneIx(duelId, alice.publicKey, bob.publicKey)];
@@ -230,18 +252,10 @@ describe("celeb-duel-program-sdk", () => {
     transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction.feePayer = bob.publicKey;
 
-    // BE sign
     const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
-    recoverTx.partialSign(payerKeypair);
-    const encodedTransaction = recoverTx
-      .serialize({ requireAllSignatures: false })
-      .toString("base64");
 
-    // Recover transaction in FE
-    const recoveredTransaction = Transaction.from(Buffer.from(encodedTransaction, "base64"));
-
-    recoveredTransaction.partialSign(bob);
-    let signedTx = await aliceWallet.signTransaction(recoveredTransaction);
+    recoverTx.partialSign(bob);
+    let signedTx = await aliceWallet.signTransaction(recoverTx);
     await connection.sendRawTransaction(signedTx.serialize());
 
     // ensure tx above to be confirmed
@@ -268,7 +282,6 @@ describe("celeb-duel-program-sdk", () => {
     let duelTokenTwoAccountInfo = await getAccount(connection, duelTokenTwoAccount);
     expect(duelTokenTwoAccountInfo.amount.toString()).to.be.equal("0");
 
-    // Build and sign transaction in BE, then encode to send to FE
     client = await DuelClient.getClient(adminContext, duelConfigAccount);
 
     let instructions = [await client.buildVoteTwoIx(duelId, bob.publicKey, alice.publicKey)];
@@ -276,18 +289,10 @@ describe("celeb-duel-program-sdk", () => {
     transaction.recentBlockhash = (await connection.getLatestBlockhash("processed")).blockhash;
     transaction.feePayer = alice.publicKey;
 
-    // Admin sign
     const recoverTx = Transaction.from(transaction.serialize({ requireAllSignatures: false }));
-    recoverTx.partialSign(payerKeypair);
-    const encodedTransaction = recoverTx
-      .serialize({ requireAllSignatures: false })
-      .toString("base64");
 
-    // Recover transaction in FE
-    const recoveredTransaction = Transaction.from(Buffer.from(encodedTransaction, "base64"));
-
-    recoveredTransaction.partialSign(alice);
-    let signedTx = await bobWallet.signTransaction(recoveredTransaction);
+    recoverTx.partialSign(alice);
+    let signedTx = await bobWallet.signTransaction(recoverTx);
     await connection.sendRawTransaction(signedTx.serialize());
 
     // ensure tx above to be confirmed

@@ -4,16 +4,9 @@ use anchor_spl::token::{mint_to, MintTo, Token};
 #[derive(Accounts)]
 pub struct VoteTwo<'info> {
     #[account(mut)]
-    pub authority: Signer<'info>,
-    #[account(
-      mut,
-      address = duel_config_account.admin @ CelebDuelErrorCode::InvalidMintAuthority,
-    )]
-    pub mint_authority: Signer<'info>,
-    #[account(
-      mut,
-    )]
     pub fee_payer: Signer<'info>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
     #[account(
         mut,
         address = duel_account.duel_config_account @ CelebDuelErrorCode::InvalidDuelAndDuelConfigAccount,
@@ -73,24 +66,21 @@ pub fn exec(ctx: Context<VoteTwo>, bump: u8) -> Result<()> {
     }
 
     msg!("Token minting:");
-    let cpi_accounts = MintTo {
-        mint: ctx.accounts.token_two.to_account_info(),
-        to: ctx.accounts.duel_token_two_account.to_account_info(),
-        authority: ctx.accounts.mint_authority.to_account_info(),
-    };
-
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-    let result = mint_to(
-        cpi_ctx,
+    mint_to(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.token_two.to_account_info(),
+                to: ctx.accounts.duel_token_two_account.to_account_info(),
+                authority: duel.to_account_info(),
+            },
+            &[&[DUEL_SEED, &duel.id.to_le_bytes(), &[duel.bump[0]]]],
+        ),
         10_i32
             .pow(ctx.accounts.token_two.decimals.into())
             .try_into()
             .unwrap(),
-    );
-    if let Err(_) = result {
-        return Err(error!(CelebDuelErrorCode::MintFailed));
-    }
+    )?;
     msg!("Token Minted!!!");
 
     // `false` mean vote for number two
