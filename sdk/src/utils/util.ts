@@ -12,5 +12,5 @@ export function getVoteDay(timestamp: number, testMode: boolean): number {
   } else {
       days = (timestamp / SECONDS_PER_MINUTE) % 60;
   }
-  return days;
+  return Number(days.toFixed(0));
 }
