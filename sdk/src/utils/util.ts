@@ -5,12 +5,12 @@ export function keypairFromJson(secretKey: number[]): anchor.web3.Keypair {
   return anchor.web3.Keypair.fromSecretKey(Uint8Array.from(secretKey));
 }
 
-export function getVoteDay(timestamp: number, testMode: boolean): number {
-  let days;
+export function getTimeCanVote(timestamp: number, testMode: boolean): number {
+  let timestampCanVote;
   if (!testMode) {
-      days = (timestamp / SECONDS_PER_DAY) % 31 + 1;
+    timestampCanVote = timestamp + SECONDS_PER_DAY;
   } else {
-      days = (timestamp / SECONDS_PER_MINUTE) % 60;
+    timestampCanVote = timestamp + SECONDS_PER_MINUTE;
   }
-  return Number(days.toFixed(0));
+  return Number(timestampCanVote);
 }

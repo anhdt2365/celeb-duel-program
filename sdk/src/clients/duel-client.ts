@@ -1,7 +1,7 @@
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { BN } from "@project-serum/anchor";
 import { TransactionBuilder } from "@orca-so/common-sdk";
-import { Context, PDA, getVoteDay } from "..";
+import { Context, PDA, getTimeCanVote } from "..";
 import { DuelConfigData, DuelData, DuelResult, UserData } from "../types";
 import { getAccount } from "spl-token";
 
@@ -406,8 +406,7 @@ export class DuelClient {
     const user = this.pda.user(duel.key, userPublicKey);
     const userData = await this.getOneUser(user.key);
     if (!userData) return true;
-    const lastVoteTime = getVoteDay(userData.lastVoteTime.toNumber(), duelConfig.testMode);
-    const currentDay = getVoteDay(Number(now), duelConfig.testMode);
-    return lastVoteTime != currentDay ? true : false;
+    const timestampCanVote = getTimeCanVote(userData.lastVoteTime.toNumber(), duelConfig.testMode);
+    return Number(now) > timestampCanVote ? true : false;
   }
 }
