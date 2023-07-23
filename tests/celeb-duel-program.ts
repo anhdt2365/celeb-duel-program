@@ -581,7 +581,7 @@ describe("celeb-duel-program", () => {
     expect(duelInfo.winner).to.be.equal(0);
 
     duelTokenOneAccountInfo = await getAccount(connection, duelTokenOneAccount);
-    expect(duelTokenOneAccountInfo.amount.toString()).to.be.equal(LAMPORTS_PER_SOL.toString());
+    expect(duelTokenOneAccountInfo.amount.toString()).to.be.equal((10 * LAMPORTS_PER_SOL).toString());
   });
 
   it("successful vote number two", async () => {
@@ -646,7 +646,7 @@ describe("celeb-duel-program", () => {
     expect(duelInfo.winner).to.be.equal(0);
 
     duelTokenTwoAccountInfo = await getAccount(connection, duelTokenTwoAccount);
-    expect(duelTokenTwoAccountInfo.amount.toString()).to.be.equal(LAMPORTS_PER_SOL.toString());
+    expect(duelTokenTwoAccountInfo.amount.toString()).to.be.equal((10 * LAMPORTS_PER_SOL).toString());
   });
 
   it("cannot vote immediately", async () => {

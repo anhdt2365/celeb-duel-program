@@ -259,9 +259,18 @@ describe("celeb-duel-program-sdk", () => {
     await connection.sendRawTransaction(signedTx.serialize());
 
     // ensure tx above to be confirmed
-    await transferSol(connection, payerKeypair, alice.publicKey, 1);
+    await transferSol(connection, payerKeypair, Keypair.generate().publicKey, 1);
 
-    let duelInfo = await program.account.duel.fetch(duelAccount);
+    let userInfo = await client.getUserByUserPublicKey(duelAccount, alice.publicKey);
+    expect(userInfo.duelAccount.toString()).to.be.equal(duelAccount.toBase58());
+    expect(userInfo.initialized).to.be.equal(true);
+    expect(userInfo.user.toString()).to.be.equal(alice.publicKey.toBase58());
+    expect(userInfo.totalVotedOne.toString()).to.be.equal("1");
+    expect(userInfo.totalVotedTwo.toString()).to.be.equal("0");
+    expect(userInfo.lastVoteTime.toNumber()).to.greaterThan(Number(startTime));
+    expect(userInfo.lastVoteTime.toNumber()).to.lessThan(Number(endTime));
+
+    let duelInfo = await client.getOneDuel(duelAccount);
     expect(duelInfo.id.toString()).to.be.equal(duelId.toString());
     expect(duelInfo.duelConfigAccount.toString()).to.be.equal(duelConfigAccount.toBase58());
     expect(duelInfo.tokenOne.toString()).to.be.equal(tokenOne.toBase58());
@@ -274,7 +283,7 @@ describe("celeb-duel-program-sdk", () => {
 
     duelTokenOneAccountInfo = await getAccount(connection, duelTokenOneAccount);
     expect(duelTokenOneAccountInfo.amount.toString()).to.be.equal(
-      new BN(LAMPORTS_PER_SOL).toString(),
+      new BN(10 * LAMPORTS_PER_SOL).toString(),
     );
 
     // get voted user account
@@ -298,7 +307,16 @@ describe("celeb-duel-program-sdk", () => {
     await connection.sendRawTransaction(signedTx.serialize());
 
     // ensure tx above to be confirmed
-    await transferSol(connection, payerKeypair, bob.publicKey, 1);
+    await transferSol(connection, payerKeypair, Keypair.generate().publicKey, 1);
+
+    let userInfo = await client.getUserByUserPublicKey(duelAccount, bob.publicKey);
+    expect(userInfo.duelAccount.toString()).to.be.equal(duelAccount.toBase58());
+    expect(userInfo.initialized).to.be.equal(true);
+    expect(userInfo.user.toString()).to.be.equal(bob.publicKey.toBase58());
+    expect(userInfo.totalVotedOne.toString()).to.be.equal("0");
+    expect(userInfo.totalVotedTwo.toString()).to.be.equal("1");
+    expect(userInfo.lastVoteTime.toNumber()).to.greaterThan(Number(startTime));
+    expect(userInfo.lastVoteTime.toNumber()).to.lessThan(Number(endTime));
 
     let duelInfo = await program.account.duel.fetch(duelAccount);
     expect(duelInfo.id.toString()).to.be.equal(duelId.toString());
@@ -313,7 +331,7 @@ describe("celeb-duel-program-sdk", () => {
 
     duelTokenTwoAccountInfo = await getAccount(connection, duelTokenTwoAccount);
     expect(duelTokenTwoAccountInfo.amount.toString()).to.be.equal(
-      new BN(LAMPORTS_PER_SOL).toString(),
+      new BN(10 * LAMPORTS_PER_SOL).toString(),
     );
   });
 

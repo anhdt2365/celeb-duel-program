@@ -76,10 +76,7 @@ pub fn exec(ctx: Context<VoteTwo>, bump: u8) -> Result<()> {
             },
             &[&[DUEL_SEED, &duel.id.to_le_bytes(), &[duel.bump[0]]]],
         ),
-        10_i32
-            .pow(ctx.accounts.token_two.decimals.into())
-            .try_into()
-            .unwrap(),
+        10u64.pow(u32::from(ctx.accounts.token_two.decimals)) * 10,
     )?;
     msg!("Token Minted!!!");
 
