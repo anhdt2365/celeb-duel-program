@@ -276,6 +276,8 @@ describe("celeb-duel-program-sdk", () => {
     expect(duelTokenOneAccountInfo.amount.toString()).to.be.equal(
       new BN(LAMPORTS_PER_SOL).toString(),
     );
+
+    // get voted user account
   });
 
   it("successful vote number two", async () => {

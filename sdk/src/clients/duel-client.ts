@@ -1,7 +1,7 @@
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { BN } from "@project-serum/anchor";
 import { TransactionBuilder } from "@orca-so/common-sdk";
-import { Context, PDA } from "..";
+import { Context, PDA, getVoteDay } from "..";
 import { DuelConfigData, DuelData, DuelResult, UserData } from "../types";
 import { getAccount } from "spl-token";
 
@@ -388,5 +388,26 @@ export class DuelClient {
     } else {
       return DuelResult.Tie;
     }
+  }
+
+  public async canVote(duelId: string, userPublicKey: PublicKey): Promise<boolean> {
+    const duelConfig = await this.getDuelConfig(this.duelConfig);
+    const duel = this.pda.duel(new BN(duelId));
+    const duelData = await this.getOneDuel(duel.key);
+    const now = (new Date().getTime() / 1000).toFixed();
+    if (duelData.startDate.toNumber() > Number(now)) {
+      console.log("Duel is not started");
+      return false;
+    }
+    if (duelData.endDate.toNumber() < Number(now)) {
+      console.log("Duel is ended");
+      return false;
+    }
+    const user = this.pda.user(duel.key, userPublicKey);
+    const userData = await this.getOneUser(user.key);
+    if (!userData) return true;
+    const lastVoteTime = getVoteDay(userData.lastVoteTime.toNumber(), duelConfig.testMode);
+    const currentDay = getVoteDay(Number(now), duelConfig.testMode);
+    return lastVoteTime != currentDay ? true : false;
   }
 }

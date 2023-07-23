@@ -1,2 +1,5 @@
 export const CELEB_DUEL_PROGRAM_ID = "3p2vXr5dLy6dN8ehJZ5NEvDkmrPCz7PBj2YMQEsvpURW";
 export const DUEL_CONFIG_ACCOUNT = "ALuEn89QSLc2qeAjF9qi6QMxcKizZCfRrPXxVWaMkTfo";
+
+export const SECONDS_PER_DAY = 86400;
+export const SECONDS_PER_MINUTE = 60;

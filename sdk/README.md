@@ -2,7 +2,7 @@
 
 ## How to use
 
-### 1. Vote One
+### 1. Check user can vote
 ```javascript
 import {
   PublicKey,
@@ -23,10 +23,38 @@ const connection = new Connection(const.RPC_ENDPOINT_URL, { commitment });
 const wallet = new Wallet(yourKey);
 const provider = new AnchorProvider(connection, wallet, { commitment });
 
-// Build and sign transaction in BE, then encode to send to FE
 const ctx = Context.withProvider(provider, new PublicKey(CELEB_DUEL_PROGRAM_ID));
 
-const duelClient = await DuelClient.getClient(ctx);
+const duelClient = await DuelClient.getClient(ctx, new PublicKey(DUEL_CONFIG_ACCOUNT));
+
+const canVote = await duelClient.canVote(duelId, user.publicKey);
+console.log(`User can vote now?: ${canVote}`)
+```
+
+### 2. Vote One
+```javascript
+import {
+  PublicKey,
+  Connection,
+  Keypair,
+  Commitment,
+} from "@solana/web3.js";
+import { AnchorProvider, Wallet } from "@project-serum/anchor";
+import { Context, DuelClient, CELEB_DUEL_PROGRAM_ID, DUEL_CONFIG_ACCOUNT } from "@renec-foundation/celeb-duel-sdk";
+
+
+...
+
+// yourKey = Keypair.fromSecretKey(Uint8Array.from([124, 149, 222, 31, 236, 142, 29, 95...]));
+
+const commitment: Commitment = "confirmed";
+const connection = new Connection(const.RPC_ENDPOINT_URL, { commitment });
+const wallet = new Wallet(yourKey);
+const provider = new AnchorProvider(connection, wallet, { commitment });
+
+const ctx = Context.withProvider(provider, new PublicKey(CELEB_DUEL_PROGRAM_ID));
+
+const duelClient = await DuelClient.getClient(ctx, new PublicKey(DUEL_CONFIG_ACCOUNT));
 
 // client.buildVoteOneIx(duelId, user, feePayer)
 const instructions = [await client.buildVoteOneIx(duelId, user.publicKey, user.publicKey)];
@@ -36,32 +64,22 @@ transaction.recentBlockhash = (
 ).blockhash;
 transaction.feePayer = user.publicKey;
 
-// BE sign
 const recoverTx = Transaction.from(
   transaction.serialize({ requireAllSignatures: false })
 );
-recoverTx.partialSign(yourKey);
-
-const encodedTransaction = recoverTx.serialize({ requireAllSignatures: false }).toString("base64");
-// then send `encodedTransaction` to FE...
-
-// Recover transaction in FE
-const recoveredTransaction = Transaction.from(
-  Buffer.from(encodedTransaction, 'base64')
-);
 
 // Fee Payer Sign
-// recoveredTransaction.partialSign(user); ----> user already sign below, uncomment if the feePayer is GasLess service
-let signedTx = await userWallet.signTransaction(recoveredTransaction);
+// recoverTx.partialSign(user); ----> user already sign below, uncomment if the feePayer is GasLess service
+let signedTx = await userWallet.signTransaction(recoverTx);
 await connection.sendRawTransaction(signedTx.serialize());
 
 
-const providerConfig = await kycClient.getProviderConfigByProviderName(providerName);
-console.log("providerConfig", providerConfig);
+const userVoteData = await duelClient.getUserByUserPublicKey(user.publicKey);
+console.log("userVoteData", userVoteData);
 ```
 
 
-### 2. Vote Two
+### 3. Vote Two
 ```javascript
 import {
   PublicKey,
@@ -70,7 +88,7 @@ import {
   Commitment,
 } from "@solana/web3.js";
 import { AnchorProvider, Wallet } from "@project-serum/anchor";
-import { Context, DuelClient, CELEB_DUEL_PROGRAM_ID } from "@renec-foundation/celeb-duel-sdk";
+import { Context, DuelClient, CELEB_DUEL_PROGRAM_ID, DUEL_CONFIG_ACCOUNT } from "@renec-foundation/celeb-duel-sdk";
 
 
 ...
@@ -84,9 +102,9 @@ const provider = new AnchorProvider(connection, wallet, { commitment });
 // Build and sign transaction in BE, then encode to send to FE
 const ctx = Context.withProvider(provider, new PublicKey(CELEB_DUEL_PROGRAM_ID));
 
-const duelClient = await DuelClient.getClient(ctx);
+const duelClient = await DuelClient.getClient(ctx, new PublicKey(DUEL_CONFIG_ACCOUNT));
 
-// client.buildVoteOneIx(duelId, user, feePayer)
+// client.buildVoteTwoIx(duelId, user, feePayer)
 const instructions = [await client.buildVoteTwoIx(duelId, user.publicKey, user.publicKey)];
 const transaction = new Transaction().add(...instructions);
 transaction.recentBlockhash = (
@@ -94,27 +112,21 @@ transaction.recentBlockhash = (
 ).blockhash;
 transaction.feePayer = user.publicKey;
 
-// BE sign
 const recoverTx = Transaction.from(
   transaction.serialize({ requireAllSignatures: false })
 );
-recoverTx.partialSign(yourKey);
-
-const encodedTransaction = recoverTx.serialize({ requireAllSignatures: false }).toString("base64");
-// then send `encodedTransaction` to FE...
-
-// Recover transaction in FE
-const recoveredTransaction = Transaction.from(
-  Buffer.from(encodedTransaction, 'base64')
-);
 
 // Fee Payer Sign
-// recoveredTransaction.partialSign(user); ----> user already sign below, uncomment if the feePayer is GasLess service
-let signedTx = await userWallet.signTransaction(recoveredTransaction);
+// recoverTx.partialSign(user); ----> user already sign below, uncomment if the feePayer is GasLess service
+let signedTx = await userWallet.signTransaction(recoverTx);
 await connection.sendRawTransaction(signedTx.serialize());
+
+
+const userVoteData = await duelClient.getUserByUserPublicKey(user.publicKey);
+console.log("userVoteData", userVoteData);
 ```
 
-### 3. Announce Winner
+### 4. Announce Winner
 ```javascript
 import {
   PublicKey,
@@ -172,5 +184,4 @@ const tx = await duelClient.announceWinner(
   adminTokenAccount,
 );
 const txSignature = await tx.buildAndExecute();
-
 ```
